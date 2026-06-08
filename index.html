@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif PJOK</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --success: #16a34a;
+            --success-light: #f0fdf4;
+            --danger: #dc2626;
+            --danger-light: #fef2f2;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .quiz-container {
+            max-width: 640px;
+            width: 100%;
+            background: var(--card);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .quiz-header {
+            margin-bottom: 32px;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            height: 6px;
+            background-color: var(--border);
+            border-radius: 100px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .question-number {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1.6;
+            color: var(--text-main);
+            margin-top: 16px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .option-btn {
+            background-color: var(--card);
+            border: 1.5px solid var(--border);
+            padding: 16px 24px;
+            border-radius: 14px;
+            text-align: left;
+            font-size: 1rem;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            border-color: var(--text-muted);
+            background-color: #f8fafc;
+            transform: translateY(-1px);
+        }
+
+        .option-btn.correct {
+            background-color: var(--success-light);
+            border-color: var(--success);
+            color: #14532d;
+            font-weight: 600;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--danger-light);
+            border-color: var(--danger);
+            color: #7f1d1d;
+        }
+
+        .status-icon {
+            display: none;
+            width: 20px;
+            height: 20px;
+        }
+
+        .option-btn.correct .icon-correct,
+        .option-btn.wrong .icon-wrong {
+            display: block;
+        }
+
+        .reason-box {
+            margin-top: 24px;
+            padding: 20px;
+            background-color: var(--primary-light);
+            border-radius: 16px;
+            border: 1px solid #dbeafe;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .reason-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .reason-text {
+            font-size: 0.975rem;
+            line-height: 1.5;
+            color: #1e3a8a;
+        }
+
+        .next-btn {
+            margin-top: 32px;
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .next-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .result-screen {
+            text-align: center;
+            display: none;
+            padding: 20px 0;
+        }
+
+        .score-badge {
+            display: inline-block;
+            background: var(--primary-light);
+            padding: 32px;
+            border-radius: 50%;
+            margin: 24px 0;
+        }
+
+        .score {
+            font-size: 4.5rem;
+            font-weight: 900;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .result-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .result-summary {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .watermark {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 24px;
+            text-align: center;
+            opacity: 0.7;
+        }
+
+        /* Floating AI Control Panel */
+        .ai-floating-btn {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background-color: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 100px;
+            padding: 14px 24px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            z-index: 999;
+        }
+
+        .ai-floating-btn:hover {
+            background-color: #1e293b;
+            transform: translateY(-2px);
+        }
+
+        .ai-modal {
+            display: none;
+            position: fixed;
+            bottom: 96px;
+            right: 32px;
+            width: 300px;
+            background: var(--card);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            z-index: 1000;
+            animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(15px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .ai-modal-header {
+            background: #f8fafc;
+            padding: 16px 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .ai-modal-close:hover { color: var(--text-main); }
+
+        .ai-options-list {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ai-link-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+        }
+
+        .ai-link-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .ai-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ai-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <!-- Quiz Interface -->
+    <div id="quiz-window">
+        <div class="quiz-header">
+            <div class="progress-container">
+                <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+                <div class="question-number" id="q-num">Soal 1 dari 50</div>
+            </div>
+            <div class="question-text" id="q-text">Loading pertanyaan...</div>
+        </div>
+        
+        <div class="options" id="options-container"></div>
+        
+        <div class="reason-box" id="reason-box">
+            <div class="reason-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                Alasan Analisis
+            </div>
+            <div class="reason-text" id="reason-text">Alasan jawaban.</div>
+        </div>
+        
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">
+            <span>Pertanyaan Selanjutnya</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4-4-4-4M11 4v8"/></svg>
+        </button>
+    </div>
+
+    <!-- Result Interface -->
+    <div id="result-window" class="result-screen">
+        <div class="result-title">Kuis Selesai</div>
+        <p class="result-summary" style="margin-bottom: 0;">Skor pencapaian kompetensi kamu:</p>
+        <div class="score-badge">
+            <div class="score" id="final-score">0</div>
+        </div>
+        <p class="result-summary" id="score-summary">Evaluasi selesai.</p>
+        <button class="next-btn" style="display:flex; margin-top: 16px;" onclick="location.reload()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+            <span>Ulangi Kuis</span>
+        </button>
+    </div>
+</div>
+
+<!-- Watermark -->
+<div class="watermark">powered by razuhfgkruay</div>
+
+<!-- Floating AI Widget -->
+<button class="ai-floating-btn" onclick="toggleAiModal()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+    <span>Asisten AI</span>
+</button>
+
+<div class="ai-modal" id="aiModal">
+    <div class="ai-modal-header">
+        <span>INTEGRASI MODEL AI</span>
+        <button class="ai-modal-close" onclick="toggleAiModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </div>
+    <div class="ai-options-list">
+        <a href="https://gemini.google.com" target="_blank" class="ai-link-btn">
+            <div class="ai-brand">
+                <div class="ai-dot" style="background-color: #2563eb;"></div>
+                <span>Google Gemini</span>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </a>
+        <a href="https://chatgpt.com" target="_blank" class="ai-link-btn">
+            <div class="ai-brand">
+                <div class="ai-dot" style="background-color: #10a37f;"></div>
+                <span>OpenAI ChatGPT</span>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </a>
+        <a href="https://claude.ai" target="_blank" class="ai-link-btn">
+            <div class="ai-brand">
+                <div class="ai-dot" style="background-color: #d97757;"></div>
+                <span>Anthropic Claude</span>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </a>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    {q: "Melempar bola dari jarak tertentu dengan tujuan memasukkannya ke dalam ring disebut...", o: ["Shooting", "Passing", "Overhead pass", "Dribbling", "Chest pass"], a: 0, r: "Usaha memasukkan bola ke dalam ring disebut menembak bola (shooting)."},
+    {q: "Upaya memasukkan bola ke dalam keranjang sambil melayang dan terlebih dahulu diawali dengan gerakan melangkah (melompat dengan satu kaki) disebut dengan istilah...", o: ["Pivot", "Jump shoot", "Lay up shoot", "Standing shoot", "Slam dunk"], a: 2, r: "Tembakan (shoot) yang dilakukan dengan menggunakan variasi melangkah (kaki) ke arah ring basket disebut lay up."},
+    {q: "Teknik mengoper bola ke teman dengan memegang bola di atas kepala lalu dilemparkan ke arah teman dengan jarak yang jauh adalah teknik melempar...", o: ["Underhand pass", "Bounce pass", "Overhead pass", "Chest pass", "Back pass"], a: 2, r: "Operan bola basket yang dilakukan dari posisi di atas kepala dinamakan overhead pass."},
+    {q: "Lemparan dalam permainan bola basket yang digunakan untuk operan jarak pendek adalah...", o: ["Chest pass", "Overhand pass", "Bounce pass", "Baseball pass", "Dribbling"], a: 0, r: "Chest pass merupakan operan setinggi dada yang lazim digunakan untuk jarak pendek yang cepat dan akurat."},
+    {q: "Gerakan lay up shoot diawali dengan melangkah sebanyak...", o: ["1 langkah", "2 langkah", "3 langkah", "4 langkah", "5 langkah"], a: 1, r: "Secara aturan dasar teknis bola basket, gerakan lay up yang sah diawali dengan memegang bola lalu melangkah sebanyak maksimal dua langkah sebelum melompat menembak."},
+    {q: "Di bawah ini yang merupakan teknik dasar passing dalam permainan bola basket adalah...", o: ["Push up", "Zig-zag run", "Back up", "Chest pass", "Sit up"], a: 3, r: "Chest pass (operan dada) adalah salah satu jenis teknik mengoper dasar (passing) dalam bola basket."},
+    {q: "Menggiring / memantul-mantulkan bola sering disebut dengan istilah...", o: ["Dribbling", "Shooting", "Passing", "Chest pass", "Bounce pass"], a: 0, r: "Usaha membawa bola dengan cara mendorong atau memantul-mantulkannya ke lantai disebut dribbling."},
+    {q: "Di bawah ini yang bukan merupakan teknik melempar dengan 2 tangan adalah...", o: ["Chest pass", "Back pass", "Overhand pass", "Bounce pass", "Underhand pass"], a: 1, r: "Teknik operan dasar dua tangan yang dipelajari meliputi chest pass, overhead pass, dan bounce pass. Back pass (operan di belakang punggung) adalah teknik tingkat lanjut menggunakan satu tangan."},
+    {q: "Nama orang yang menciptakan bola basket adalah...", o: ["Dr. James Naismith", "William G. Morgan", "John Arthur", "Juan Carlos", "Ebenezer Morley"], a: 0, r: "Olahraga bola basket diciptakan oleh Dr. James Naismith pada tahun 1891 di Amerika Serikat."},
+    {q: "Keterampilan utama yang harus kita pelajari dalam permainan bola basket adalah...", o: ["Menangkap bola", "Mengoper bola", "Melempar bola", "Menggiring bola", "Menendang bola"], a: 1, r: "Mengoper bola (passing) merupakan inti dasar dari permainan invasi kelompok untuk menyusun serangan kolektif."},
+    {q: "Teknik dasar pivot adalah...", o: ["Gerakan mengoper atau memberikan bola ke teman", "Membawa bola dengan cara memantul-mantulkannya ke lantai dengan satu tangan", "Gerakan memegang sisi bola dengan kedua tangan dan menjaga siku tetap rapat di samping badan", "Menembak bola dan memasukkannya ke dalam ring", "Gerakan memputar salah satu kaki sebagai porosnya dan posisi kedua tangan memegang bola"], a: 4, r: "Teknik dasar pivot adalah gerakan menyelamatkan bola dengan cara memutar badan bertumpu pada salah satu kaki yang bertindak sebagai poros (pivot foot)."},
+    {q: "Bounce pass adalah...", o: ["Mengoper bola dari atas kepala", "Mengoper bola dari depan dada", "Mengoper bola dengan memantulkannya ke lantai sebelum diterima teman", "Mengoper bola ke samping badan", "Mengoper bola ke segala sisi"], a: 2, r: "Bounce pass secara harfiah merupakan operan dengan cara memantulkan bola ke lantai."},
+    {q: "Posisi jari tangan saat bola masuk di antara kedua tangan adalah...", o: ["Dirapatkan dan ditekuk ke dalam", "Segera melekat ke bola", "Mengikuti arah bola", "Menangkap dan menarik ke belakang", "Menguasai bola"], a: 1, r: "Teknik menangkap bola (catching) mengharuskan jari tangan terbuka lebar agar bola dapat melekat erat di telapak tangan tanpa tergelincir."},
+    {q: "Nama lain dari aktivitas pembelajaran keterampilan gerak mengoper dan menangkap bola dengan formasi berbanjar adalah...", o: ["Shooting", "Dribbling", "Zig-zag", "Passing run", "Rolling"], a: 3, r: "Pembelajaran berbanjar mengalir dikombinasikan dengan lari perpindahan posisi disebut passing run."},
+    {q: "Sikap awal gerak menggiring bola zig-zag yang diawali dari garis start adalah...", o: ["Badan agak condong ke depan", "Berdiri dengan sikap melangkah", "Berat badan tertumpu pada kaki depan", "Menggiring bola zig-zag", "Lari berantai berputar"], a: 1, r: "Sikap seimbang awal untuk bersiap mendribble dinamis maju (seperti zig-zag) diawali dengan berdiri dengan posisi kaki melangkah."},
+    {q: "Teknik menembakkan bola disebut...", o: ["Foul", "Pivot", "Shooting", "Rebound", "Passing"], a: 2, r: "Usaha untuk mengarahkan dan memasukkan bola menuju ring sasaran demi mencetak angka disebut shooting."},
+    {q: "Yang dimaksud dengan violation adalah...", o: ["Pelanggaran langsung terhadap fisik lawan", "Pelanggaran yang lebih condong ke peraturan permainan basket (teknis)", "Pelanggaran menginjak garis lawan", "Pelanggaran keluar dari lapangan", "Pelanggaran memukul pemain lawan"], a: 1, r: "Berbeda dengan foul yang melibatkan kontak fisik ilegal, violation adalah pelanggaran teknis peraturan (seperti traveling atau double dribble)."},
+    {q: "Posisi bola pada saat melakukan operan overhand pass adalah...", o: ["Bola diayunkan dari atas kepala ke arah depan", "Di depan kaki pada jarak 1-2 meter", "Maju dengan mengikuti arah kaki bagian dalam", "Didorong ke samping menyesuaikan kecepatan", "Fokuskan bola ke arah tiang"], a: 0, r: "Pada operan atas kepala, bola dipegang di atas kepala lalu diayun mendorong ke depan menuju rekan setim."},
+    {q: "Jenis dribble yang dilakukan dengan tempo pantulan yang cepat dengan tujuan menghindari penjagaan lawan dan digunakan untuk menerobos dinding pertahanan lawan disebut...", o: ["Dribbling rendah", "Dribbling sedang", "Dribbling tinggi", "Dribbling bawah", "Dribbling samping"], a: 2, r: "Menerobos dinding pertahanan lawan dalam konteks ini menekankan pada aspek kecepatan maju (speed dribble). Untuk itu dibutuhkan pantulan bola yang cukup tinggi agar langkah kaki pemain dapat bergerak maksimal."},
+    {q: "Pada saat gerakan lay up, langkah kaki gerakan lay up kanan saat bola dipegang dengan kedua tangan adalah...", o: ["Melangkah sebanyak dua langkah", "Mengeblok lawan", "Melangkah ke belakang", "Melompat jauh", "Menembak sambil melayang"], a: 0, r: "Saat melakukan rangkaian lay up kanan, langkah kaki dibatasi maksimal dua langkah sembari menguasai bola di tangan sebelum melakukan lompatan."},
+    {q: "Permainan bola basket diciptakan pada tahun...", o: ["1945", "1891", "1981", "1889", "1898"], a: 1, r: "Bola basket diciptakan pertama kali secara resmi pada tahun 1891 oleh Dr. James Naismith."},
+    {q: "Operan setinggi dada disebut...", o: ["Bounce pass", "Overhand pass", "Chest pass", "Side hand pass", "Front chest pass"], a: 2, r: "Chest pass adalah teknik mengoper bola setinggi dada."},
+    {q: "1) Menguasai/mempertahankan objek permainan. 2) Berusaha merebut objek permainan lawan. Berdasarkan pernyataan tersebut, merupakan...", o: ["Hakikat permainan invasi", "Manfaat permainan invasi", "Tujuan permainan invasi", "Cara melakukan permainan invasi", "Teknik dasar permainan invasi"], a: 0, r: "Mempertahankan objek, mengoper, menggiring, dan merebut objek permainan dari lawan merupakan ciri utama hakikat permainan invasi."},
+    {q: "Tujuan dari intercepting adalah...", o: ["Mencegah terjadinya gol", "Mengumpulkan poin sebanyak-banyaknya", "Menguasai objek permainan", "Menghambat dan menghadang lajunya permainan lawan dalam usaha membuat poin / gol", "Mengoper bola ke daerah lawan"], a: 3, r: "Intercepting atau memotong jalur operan dilakukan untuk menghentikan alur serangan musuh yang hendak mencetak poin."},
+    {q: "Teknik dasar permainan bola basket ditunjukkan pada nomor... (1. Mengumpan, 2. Menangkap, 3. Smash, 4. Pivot, 5. Menendang)", o: ["1, 2, dan 3", "1, 2, dan 4", "3, 4, dan 5", "2, 4, dan 5", "1, 3, dan 4"], a: 1, r: "Mengumpan (1), menangkap (2), dan pivot (4) adalah murni teknik dasar bola basket. Smash adalah voli, menendang adalah sepak bola."},
+    {q: "Teknik dasar dalam bola voli yang digunakan untuk memulai pertandingan atau serangan awal adalah...", o: ["Passing", "Blocking", "Smash", "Service", "Jump"], a: 3, r: "Servis dalam olahraga voli didefinisikan sebagai pukulan pembuka untuk memulai suatu pertandingan atau serangan awal."},
+    {q: "Dalam bola voli, teknik mengumpan/menerima bola di atas kepala dengan kedua tangan disebut...", o: ["Underhead pass", "Overhead pass (Passing atas)", "Spike", "Service", "Blocking"], a: 1, r: "Gerak mengoper atau melambungkan bola menggunakan jari tangan di atas kepala dinamakan teknik passing atas."},
+    {q: "Dalam bola voli, teknik memukul bola di mana tangan diayunkan dari bawah belakang ke depan atas disebut...", o: ["Underhead service (Servis bawah)", "Overhead service", "Spike", "Dig", "Juggling"], a: 0, r: "Memukul bola melewati jaring net dengan mengayunkan lengan dari arah bawah-belakang disebut servis bawah."},
+    {q: "Servis yang jalannya bola melambung atau mengambang tanpa putaran di atas net disebut...", o: ["Tennis service", "Servis atas", "Floating service", "Overhead service", "Jumping service"], a: 2, r: "Servis yang menghasilkan laju bola mengambang, bergerak acak, dan tanpa putaran disebut floating service."},
+    {q: "Gerakan arah bola hasil passing bawah dalam bola voli berbentuk...", o: ["Lurus", "Menukik", "Kembali", "Melengkung", "Memantul"], a: 3, r: "Karakteristik hasil bola dari teknik passing bawah adalah melambung parabol atau melengkung agar mudah diantisipasi oleh rekan regu."},
+    {q: "Passing bawah adalah salah satu teknik dalam permainan bola voli yang dapat dipergunakan untuk...", o: ["Membendung sasaran lawan", "Mengembalikan serangan lawan", "Menerima permulaan service", "Mengoperkan bola kepada teman seregu", "Membuang bola"], a: 2, r: "Teknik dasar yang paling aman, tepat, dan dominan digunakan untuk menyambut atau menerima bola pertama dari servis lawan adalah teknik passing bawah."},
+    {q: "Kedua kaki terbuka, lutut ditekuk, kedua lengan lurus dijulurkan ke depan bawah dan tangan saling dikaitkan. Gerakan ini adalah...", o: ["Passing bawah", "Passing atas", "Service", "Smash", "Service bawah"], a: 0, r: "Posisi kaki ditekuk, tangan diluruskan ke depan bawah, dan saling dikaitkan adalah ciri khas sikap mekanika gerak passing bawah."},
+    {q: "Gerakan tangan yang benar saat melakukan servis bawah dalam permainan bola voli adalah...", o: ["Diayun ke depan ke arah bola", "Diayun ke atas ke arah bola", "Diluruskan ke depan ke arah bola", "Dipukulkan ke depan ke arah bola", "Diputar ke depan ke arah bola"], a: 0, r: "Lengan pemukul harus diayun dari arah bawah-belakang lurus ke arah depan membentur bola."},
+    {q: "Untuk memulai pertandingan voli, pemain akan melakukan servis di area...", o: ["Luar garis belakang lapangan", "Tengah lapangan", "Depan net", "Tempat lawan", "Depan garis lapangan"], a: 0, r: "Servis wajib dilakukan dari area belakang garis servis di luar batas lapangan permainan."},
+    {q: "Istilah yang menunjukkan tindakan mengumpan bola untuk diserang setelah menerima bola dari pihak lawan adalah...", o: ["Service", "Passing", "Smash", "Dribble", "Shooting"], a: 1, r: "Passing bertindak sebagai titik awal sebuah penyusunan serangan regu."},
+    {q: "Tanda dimulainya pertandingan voli adalah ketika pemain melakukan teknik...", o: ["Service", "Passing", "Smash", "Block", "Penalti"], a: 0, r: "Suatu permainan resmi dimulai ketika seorang pemain memukul bola servis melewati net ke area lawan."},
+    {q: "Kesalahan yang mengakibatkan perolehan angka langsung bagi tim lawan adalah jika bola...", o: ["Menyentuh tanah / lantai di area sendiri", "Melambung terlalu tinggi", "Diblok lawan", "Keluar garis", "Tertangkap lawan"], a: 0, r: "Jika bola jatuh dan menyentuh lantai di area sendiri, tim tersebut gagal mempertahankan areanya dan tim lawan langsung mendapatkan poin."},
+    {q: "Permainan bola voli dikatakan sebagai permainan pertandingan karena...", o: ["Dimainkan oleh pemain yang menggunakan strategi dalam bertanding", "Melibatkan 2 tim yang saling berhadapan untuk mendapatkan hasil pertandingan", "Diperlombakan sampai ajang nasional dan internasional", "Menggunakan bola sebagai alat untuk melakukan pertandingan", "Membutuhkan kerja sama yang kuat antar tim yang bertanding"], a: 1, r: "Bola voli adalah olahraga kategori tim/regu yang menghadapkan dua kelompok di atas lapangan untuk saling mematikan bola demi poin kemenangan."},
+    {q: "Berhasil atau tidaknya suatu penyerangan (smash) dalam permainan bola voli sebagian besar bergantung pada...", o: ["Pemberian bola (umpan) pada pemain penyerang", "Pendaratan dari posisi serang", "Postur tubuh penyerang", "Posisi penyerang bola", "Lebar langkah penyerang"], a: 0, r: "Kualitas umpan atau set up dari tosser sangat menentukan kenyamanan posisi spiker untuk melakukan eksekusi smash tajam."},
+    {q: "Jika 3 orang memblok, 1 orang mempertahankan tengah, dan 2 orang mempertahankan belakang, maka ini menggunakan sistem...", o: ["3:1:2", "3:2:1", "3:0:3", "1:3:2", "2:2:3"], a: 0, r: "Penulisan formasi sistem pertahanan berurutan dari depan (net/blok)=3, tengah=1, lalu belakang=2."},
+    {q: "Servis dalam permainan bola voli hanya dapat dilakukan pada area...", o: ["Kotak servis 3 meter", "Tempat bebas", "Menurut kesukaan yang servis", "Kotak servis 6 meter", "Belakang garis servis selebar 9 meter"], a: 4, r: "Area servis mencakup seluruh batas lebar area garis belakang lapangan voli (yaitu sepanjang 9 meter)."},
+    {q: "Saat arah bola datang dalam posisi rendah/di bawah dada, maka pemain voli sebaiknya menggunakan teknik...", o: ["Passing atas", "Passing bawah", "Service", "Blocking", "Smash"], a: 1, r: "Jika bola datang dalam lintasan rendah atau di bawah dada, teknik yang tepat dan aman digunakan adalah passing bawah."},
+    {q: "Urutan yang benar dalam melakukan smash adalah...", o: ["Mendarat, awalan, meloncat, dan memukul", "Meloncat dan memukul", "Memukul, mendarat, awalan, dan meloncat", "Meloncat, memukul, mendarat, dan awalan", "Awalan, meloncat, memukul, dan mendarat"], a: 4, r: "Urutan gerak mekanis smash dimulai dari langkah awalan lari, meloncat vertikal, memukul bola di titik tertinggi, lalu mendarat dengan aman."},
+    {q: "Gerak memukul bola dengan melambungkannya terlebih dahulu ke atas kepala lalu dipukul dengan telapak tangan terbuka di udara melewati net merupakan teknik...", o: ["Service bawah", "Service atas", "Passing", "Blocking", "Smash"], a: 1, r: "Metode melambungkan bola lalu memukulnya di atas kepala adalah ciri khas dari teknik servis atas."},
+    {q: "Pernyataan di atas adalah cara melakukan aktivitas pembelajaran... (Pukul bola diawali melentingkan pinggang ke belakang melewati net)", o: ["Keterampilan gerak memukul bola ke lantai dengan menggunakan satu tangan", "Keterampilan gerak memantulkan bola voli (servis) ke arah teman", "Keterampilan gerak memukul bola voli (servis atas) ke arah sasaran melalui atas net", "Keterampilan gerak passing atas dan bawah secara langsung", "Keterampilan gerak passing atas dan bawah menggunakan dua bola"], a: 2, r: "Pernyataan tersebut merinci instruksi latihan servis atas untuk menyeberangkan bola melewati atas net."},
+    {q: "Permainan bola voli diciptakan oleh...", o: ["William G. Morgan", "Walter Camp", "Pierre de Coubertin", "James Arthur", "James Naismith"], a: 0, r: "Olahraga bola voli pertama kali diciptakan oleh William G. Morgan pada tahun 1895 di Amerika Serikat."},
+    {q: "Saat melakukan pukulan servis, pemain harus...", o: ["Memukul bola dengan 1 tangan", "Memukul bola dengan dua tangan", "Menyundul bola", "Menendang bola", "Mengambil bola"], a: 0, r: "Pukulan servis yang sah wajib dilakukan menggunakan satu tangan setelah bola dilambungkan atau dilepas dari tangan pelambung."},
+    {q: "Pemain bertahan dalam bola voli yang bebas keluar dan masuk lapangan, tetapi tidak boleh melakukan smash adalah...", o: ["Defender", "Libero", "Spiker", "Tosser", "Striker"], a: 1, r: "Libero adalah pemain bertahan spesialis sirkulasi lini belakang yang bebas keluar-masuk, namun dilarang melakukan smash di atas net serta melakukan servis."},
+    {q: "Permainan dimulai dengan servis pertama yang dilakukan oleh tim...", o: ["Pemenang undian lempar koin", "Yang ditunjuk wasit tanpa alasan", "Yang datang terlebih dahulu", "Yang lebih senior", "Sesuai nama tim"], a: 0, r: "Hak melakukan servis pertama di set awal ditentukan melalui prosedur undian lempar koin (toss) oleh wasit utama."},
+    {q: "Gerakan mengayunkan tangan tunggal dari bawah-belakang dengan posisi tubuh agak membungkuk merupakan bentuk mekanika gerak...", o: ["Service bawah", "Service atas", "Passing", "Blocking", "Smash"], a: 0, r: "Gerakan mengayunkan lengan dari arah bawah-belakang lurus ke arah depan membentur bola merupakan bentuk gerak servis bawah."}
+];
+
+let currentQuestionIndex = 0;
+let score = 0;
+
+function loadQuestion() {
+    const currentQuestion = quizData[currentQuestionIndex];
+    document.getElementById("progress").style.width = `${((currentQuestionIndex) / quizData.length) * 100}%`;
+    document.getElementById("q-num").innerText = `Soal ${currentQuestionIndex + 1} dari ${quizData.length}`;
+    document.getElementById("q-text").innerText = currentQuestion.q;
+    
+    const optionsContainer = document.getElementById("options-container");
+    optionsContainer.innerHTML = "";
+    document.getElementById("reason-box").style.display = "none";
+    document.getElementById("next-btn").style.display = "none";
+    
+    currentQuestion.o.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.className = "option-btn";
+        
+        const textSpan = document.createElement("span");
+        textSpan.innerText = `${String.fromCharCode(97 + index)}. ${option}`;
+        button.appendChild(textSpan);
+
+        const iconSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        iconSvg.setAttribute("class", "status-icon");
+        iconSvg.setAttribute("viewBox", "0 0 24 24");
+        iconSvg.setAttribute("fill", "none");
+        iconSvg.setAttribute("stroke", "currentColor");
+        iconSvg.setAttribute("stroke-width", "2.5");
+        iconSvg.setAttribute("stroke-linecap", "round");
+        iconSvg.setAttribute("stroke-linejoin", "round");
+        button.appendChild(iconSvg);
+
+        button.onclick = () => selectOption(index, button);
+        optionsContainer.appendChild(button);
+    });
+}
+
+function selectOption(selectedIndex, clickedButton) {
+    const currentQuestion = quizData[currentQuestionIndex];
+    const allButtons = document.querySelectorAll(".option-btn");
+    allButtons.forEach(btn => btn.disabled = true);
+    
+    if (selectedIndex === currentQuestion.a) {
+        clickedButton.classList.add("correct");
+        clickedButton.querySelector(".status-icon").innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+        clickedButton.querySelector(".status-icon").classList.add("icon-correct");
+        score += 2;
+    } else {
+        clickedButton.classList.add("wrong");
+        clickedButton.querySelector(".status-icon").innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+        clickedButton.querySelector(".status-icon").classList.add("icon-wrong");
+        
+        const correctButton = allButtons[currentQuestion.a];
+        correctButton.classList.add("correct");
+        correctButton.querySelector(".status-icon").innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
+        correctButton.querySelector(".status-icon").classList.add("icon-correct");
+    }
+    
+    document.getElementById("reason-text").innerText = currentQuestion.r;
+    document.getElementById("reason-box").style.display = "block";
+    document.getElementById("next-btn").style.display = "flex";
+}
+
+function nextQuestion() {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < quizData.length) {
+        loadQuestion();
+    } else {
+        showResults();
+    }
+}
+
+function showResults() {
+    document.getElementById("quiz-window").style.display = "none";
+    document.getElementById("result-window").style.display = "block";
+    document.getElementById("final-score").innerText = score;
+    
+    let summary = "";
+    if (score === 100) summary = "Sempurna! Kamu menguasai seluruh materi PJOK dengan sangat baik.";
+    else if (score >= 80) summary = "Hebat sekali! Pemahaman teorimu sudah sangat mantap.";
+    else if (score >= 60) summary = "Cukup bagus! Sedikit ulasan materi lagi agar hasilnya makin maksimal.";
+    else summary = "Mari pelajari lagi alasannya dan coba ulangi kuisnya dari awal.";
+    
+    document.getElementById("score-summary").innerText = summary;
+}
+
+function toggleAiModal() {
+    const modal = document.getElementById("aiModal");
+    modal.style.display = (modal.style.display === "block") ? "none" : "block";
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById("aiModal");
+    const btn = document.querySelector(".ai-floating-btn");
+    if (event.target !== modal && event.target !== btn && !btn.contains(event.target) && !modal.contains(event.target)) {
+        modal.style.display = "none";
+    }
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
