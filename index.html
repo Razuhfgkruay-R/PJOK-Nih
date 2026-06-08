@@ -283,11 +283,6 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
         .ai-modal-header {
             background: #f8fafc;
             padding: 16px 20px;
@@ -325,13 +320,16 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px 16px;
-            text-decoration: none;
             color: var(--text-main);
             font-size: 0.95rem;
             font-weight: 600;
             border-radius: 12px;
             transition: all 0.2s ease;
             background: #f8fafc;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            font-family: inherit;
         }
 
         .ai-link-btn:hover {
@@ -409,27 +407,34 @@
         </button>
     </div>
     <div class="ai-options-list">
-        <a href="https://gemini.google.com" target="_blank" class="ai-link-btn">
+        <button onclick="openAiWindow('https://kalytera-ai.vercel.app/')" class="ai-link-btn">
+            <div class="ai-brand">
+                <div class="ai-dot" style="background-color: #8b5cf6;"></div>
+                <span>Kalytera AI</span>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        </button>
+        <button onclick="openAiWindow('https://gemini.google.com')" class="ai-link-btn">
             <div class="ai-brand">
                 <div class="ai-dot" style="background-color: #2563eb;"></div>
                 <span>Google Gemini</span>
             </div>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-        </a>
-        <a href="https://chatgpt.com" target="_blank" class="ai-link-btn">
+        </button>
+        <button onclick="openAiWindow('https://chatgpt.com')" class="ai-link-btn">
             <div class="ai-brand">
                 <div class="ai-dot" style="background-color: #10a37f;"></div>
                 <span>OpenAI ChatGPT</span>
             </div>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-        </a>
-        <a href="https://claude.ai" target="_blank" class="ai-link-btn">
+        </button>
+        <button onclick="openAiWindow('https://claude.ai')" class="ai-link-btn">
             <div class="ai-brand">
                 <div class="ai-dot" style="background-color: #d97757;"></div>
                 <span>Anthropic Claude</span>
             </div>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-        </a>
+        </button>
     </div>
 </div>
 
@@ -490,7 +495,6 @@ let quizData = [
 let currentQuestionIndex = 0;
 let score = 0;
 
-// Fungsi untuk mengacak array (Fisher-Yates Shuffle)
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -586,6 +590,16 @@ function toggleAiModal() {
     modal.style.display = (modal.style.display === "block") ? "none" : "block";
 }
 
+function openAiWindow(url) {
+    const width = 420;
+    const height = 650;
+    const left = (window.screen.width / 2) - (width / 2);
+    const top = (window.screen.height / 2) - (height / 2);
+    
+    window.open(url, '_blank', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`);
+    document.getElementById("aiModal").style.display = "none";
+}
+
 window.onclick = function(event) {
     const modal = document.getElementById("aiModal");
     const btn = document.querySelector(".ai-floating-btn");
@@ -594,7 +608,6 @@ window.onclick = function(event) {
     }
 }
 
-// Inisialisasi Kuis: Acak urutan soal terlebih dahulu, lalu muat soal pertama
 shuffleArray(quizData);
 loadQuestion();
 </script>
