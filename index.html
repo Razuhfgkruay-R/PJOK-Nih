@@ -348,6 +348,59 @@
             height: 8px;
             border-radius: 50%;
         }
+
+        /* Kalytera In-frame Widget Styles */
+        .kalytera-widget {
+            display: none;
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 380px;
+            height: 600px;
+            max-height: 85vh;
+            max-width: 90vw;
+            background: var(--card);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1001;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .kalytera-header {
+            background: #8b5cf6;
+            padding: 16px 20px;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .kalytera-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .kalytera-close:hover {
+            opacity: 1;
+        }
+
+        .kalytera-iframe {
+            width: 100%;
+            flex-grow: 1;
+            border: none;
+            background: #ffffff;
+        }
     </style>
 </head>
 <body>
@@ -407,12 +460,12 @@
         </button>
     </div>
     <div class="ai-options-list">
-        <button onclick="openAiWindow('https://kalytera-ai.vercel.app/')" class="ai-link-btn">
+        <button onclick="openKalytera()" class="ai-link-btn" style="background-color: #f5f3ff;">
             <div class="ai-brand">
                 <div class="ai-dot" style="background-color: #8b5cf6;"></div>
-                <span>Kalytera AI</span>
+                <span style="color: #6d28d9;">Kalytera AI</span>
             </div>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6d28d9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
         </button>
         <button onclick="openAiWindow('https://gemini.google.com')" class="ai-link-btn">
             <div class="ai-brand">
@@ -436,6 +489,19 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
         </button>
     </div>
+</div>
+
+<div class="kalytera-widget" id="kalyteraWidget">
+    <div class="kalytera-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:10px; height:10px; background:#fff; border-radius:50%;"></div>
+            Kalytera AI
+        </div>
+        <button class="kalytera-close" onclick="closeKalytera()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </div>
+    <iframe class="kalytera-iframe" src="https://kalytera-ai.vercel.app/" allow="microphone; camera; clipboard-write"></iframe>
 </div>
 
 <script>
@@ -588,6 +654,9 @@ function showResults() {
 function toggleAiModal() {
     const modal = document.getElementById("aiModal");
     modal.style.display = (modal.style.display === "block") ? "none" : "block";
+    
+    // Menutup widget Kalytera jika sedang terbuka
+    document.getElementById("kalyteraWidget").style.display = "none";
 }
 
 function openAiWindow(url) {
@@ -598,6 +667,17 @@ function openAiWindow(url) {
     
     window.open(url, '_blank', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`);
     document.getElementById("aiModal").style.display = "none";
+}
+
+// Fungsi khusus untuk menampilkan Iframe Kalytera AI
+function openKalytera() {
+    document.getElementById("aiModal").style.display = "none";
+    document.getElementById("kalyteraWidget").style.display = "flex";
+}
+
+// Fungsi untuk menutup Iframe Kalytera AI
+function closeKalytera() {
+    document.getElementById("kalyteraWidget").style.display = "none";
 }
 
 window.onclick = function(event) {
